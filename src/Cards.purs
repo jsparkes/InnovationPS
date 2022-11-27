@@ -1,14 +1,13 @@
 module Cards where
 
 import Prelude
-
 import Data.Foldable (find)
 import Data.Map (Map, values)
 import Data.Maybe (Maybe(..))
 import Data.String (toLower)
 import Effect (Effect)
--- import Effect.Exception (error)
 
+-- import Effect.Exception (error)
 data IconPosition
   = IconTop
   | IconLeft
@@ -46,7 +45,6 @@ cardColorParse "Purple" = Purple
 cardColorParse _ = Unknown
 
 -- cardColorParse str = error ("Unknown card color: " <> str)
-
 allCardColors :: Array CardColor
 allCardColors =
   [ Green
@@ -65,17 +63,18 @@ instance showCardColor :: Show CardColor where
   show Unknown = "Unknown"
 
 newtype Card
-  = Card { id :: Int
-    , age :: Int
-    , color :: CardColor
-    , title :: String
-    , icons :: Map IconPosition String
-    , hexagon :: String
-    , dogmaIcon :: String
-    , dogmaCondition1 :: String
-    , dogmaCondition2 :: String
-    , dogmaCondition3 :: String
-    }
+  = Card
+  { id :: Int
+  , age :: Int
+  , color :: CardColor
+  , title :: String
+  , icons :: Map IconPosition String
+  , hexagon :: String
+  , dogmaIcon :: String
+  , dogmaCondition1 :: String
+  , dogmaCondition2 :: String
+  , dogmaCondition3 :: String
+  }
 
 instance eqCard :: Eq Card where
   eq (Card a) (Card b) = (a.id == b.id)
@@ -90,10 +89,9 @@ instance ordCard :: Ord Card where
       EQ
 
 cardHasIcon :: Card -> String -> Boolean
-cardHasIcon (Card c) str = 
-  case find (\v -> v == str) (values c.icons) of
-    Just _ -> 1 == 1
-    Nothing -> 1 == 0
+cardHasIcon (Card c) str = case find (\v -> v == str) (values c.icons) of
+  Just _ -> 1 == 1
+  Nothing -> 1 == 0
 
 foreign import shuffleArray :: Array String -> Effect (Array String)
 
