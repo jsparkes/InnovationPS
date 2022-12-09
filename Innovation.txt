@@ -1,4 +1,4 @@
-ID	Age	Color	Title	Top	Left	Middle	Right	Hexagon (info only)	Dogma Icon	Dogma Condition 1	Dogma Condition 2	Dogma Condition 3
+id	age	color	title	top	left	middle	right	hexagon	dogmaIcon	dogmaCondition1	dogmaCondition2	dogmaCondition3
 1	1	Yellow	Agriculture	x	Leaf	Leaf	Leaf	Sheaf of grain	Leaf	"You may return a card from your hand. If you do, draw and score a card of value one higher than the card you returned."		
 2	1	Red	Archery	Castle	Lightbulb	x	Castle	bow and arrow	Castle	"I demand you draw a 1, then transfer the highest card in your hand to my hand!"		
 3	1	Purple	City States	x	Crown	Crown	Castle	Courthouse or temple	Crown	"I demand you transfer a top card with a [Castle] from your board to my board if you have at least four [Castle] icons on your board! If you do, draw a 1!"		
