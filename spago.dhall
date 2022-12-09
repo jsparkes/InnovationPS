@@ -10,14 +10,23 @@ When creating a new Spago project, you can use
 `spago init --no-comments` or `spago init -C`
 to generate this file without the comments in this block.
 -}
-{ name = "my-project"
+{ name = "InnovationPS"
 , dependencies =
-  [ "console"
+  [ "affjax"
+  , "argonaut"
+  , "argonaut-generic"
+  , "console"
+  , "csv"
   , "effect"
+  , "either"
   , "foldable-traversable"
   , "maybe"
+  , "node-fs"
+  , "node-fs-aff"
   , "ordered-collections"
   , "prelude"
+  , "spec"
+  , "spec-discovery"
   , "strings"
   ]
 , packages = ./packages.dhall
