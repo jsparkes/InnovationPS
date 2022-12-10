@@ -2,17 +2,19 @@ module Cards where
 
 import Prelude
 
-import Data.Argonaut (Json, decodeJson, parseJson)
+import Data.Argonaut (Json, JsonDecodeError, decodeJson, parseJson, printJsonDecodeError)
 import Data.Argonaut.Decode (class DecodeJson, JsonDecodeError, parseJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
+import Data.Array as Data.Array
 import Data.Array.NonEmpty (fromFoldable)
 import Data.Either (Either(..))
 import Data.Foldable (find)
 import Data.Generic.Rep (class Generic)
 import Data.Int (Radix(..), decimal)
 import Data.Int as Data.Int
+import Data.List (tail)
 import Data.Map (Map, lookup, values)
 import Data.Map as Data.Map
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -25,10 +27,13 @@ import Effect (Effect)
 import Effect.Aff (Aff, error)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Exception (error, throwException)
+import Effect.Exception (error, throw, throwException)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
 import Node.FS.Aff as FS
+import Parsing (runParser)
+import Parsing.CSV (Parsers, makeParsers)
+import Web.HTML.Event.EventTypes (offline)
 
 -- import Effect.Exception (error)
 data IconPosition
@@ -40,6 +45,18 @@ data IconPosition
 derive instance eqIconPosition :: Eq IconPosition
 
 derive instance ordIconPosition :: Ord IconPosition
+
+derive instance genericIconPosition :: Generic IconPosition _
+
+instance Show IconPosition where
+  show = genericShow
+
+instance EncodeJson IconPosition where
+  encodeJson = genericEncodeJson
+
+instance DecodeJson IconPosition where
+  decodeJson = genericDecodeJson
+
 
 allIconPositions :: Array IconPosition
 allIconPositions =
@@ -84,7 +101,8 @@ allCardColors =
 derive instance genericCardColor :: Generic CardColor _
 
 -- instance showCard :: Show CardColor where
---  show = genericShow
+--   show = genericShow
+
 instance encodeCardColor :: EncodeJson CardColor where
   encodeJson = genericEncodeJson
 
@@ -110,7 +128,7 @@ newtype Card
   , left :: String
   , middle :: String
   , right :: String
-  -- , icons :: Map IconPosition String
+  , icons :: Map IconPosition String
   , hexagon :: String
   , dogmaIcon :: String
   , dogmaCondition1 :: String
@@ -171,8 +189,8 @@ getInnovationTxt = do
   --   Right contents -> contents
   FS.readTextFile UTF8 "../innovation.txt"
 
--- parsers :: Parsers String
--- parsers = makeParsers '\"' "\t" "\n"
+parsers :: Parsers String
+parsers = makeParsers '\"' "\t" "\n"
 
 getInt :: String -> Map String String -> Int
 getInt key map = lookup key map # fromMaybe "0" # Data.Int.fromStringAs decimal # fromMaybe 0
@@ -194,35 +212,39 @@ getIconMap map = do
       ]
   )
 
--- makeCard :: Map String String -> Card
--- makeCard map =
---   Card
---     { id: getInt "Id" map
---     , age: getInt "Age" map
---     , color: cardColorParse $ getString "Color" map
---     , title: getString "Title" map
---     , icons: getIconMap map
---     , hexagon: getString "Hexagon (info only)" map
---     , dogmaIcon: getString "Dogma Icon" map
---     , dogmaCondition1: getString "Dogma Condition 1" map
---     , dogmaCondition2: getString "Dogma Condition 2" map
---     , dogmaCondition3: getString "Dogma Condition 3" map
---     }
+makeCard :: Map String String -> Card
+makeCard map =
+  Card
+    { id: getInt "Id" map
+    , age: getInt "Age" map
+    , color: cardColorParse $ getString "Color" map
+    , title: getString "Title" map
+    , icons: getIconMap map
+    , top : ""
+    , left: ""
+    , middle: ""
+    , right: ""
+    , hexagon: getString "Hexagon (info only)" map
+    , dogmaIcon: getString "Dogma Icon" map
+    , dogmaCondition1: getString "Dogma Condition 1" map
+    , dogmaCondition2: getString "Dogma Condition 2" map
+    , dogmaCondition3: getString "Dogma Condition 3" map
+    }
 -- parseCards :: String -> Aff (Array Card)
 -- parseCards content = do
---   rows <- parsers.fileHeaded (\res -> tail res) content
---   for rows makeCard
-readJsonFile :: String -> Aff String
-readJsonFile file = do
-  contents <- readTextFile UTF8 file
-  parsed <- parseJson contents
-  case parsed of 
-    Left err -> show err
-    Right values -> show values
-  -- case parseJson contents of
-    -- Left err -> show ("readJsonFile: " <> show err)
-    -- Right array ->
-    --   show array
-    --     decodeJson
-    --     array -- ::
-        -- Json -> (Array Card)
+--   let rows = 
+--             case runParser parsers.fileHeaded content (Array String) offline
+--                 Left err -> pure $ throw "failing to parse card data"
+--                 Right val -> val
+--   -- rows <- parsers.fileHeaded content
+--   for rows makeCard # Data.Array.fromFoldable
+ 
+-- readJsonFile :: String -> Aff (Either JsonDecodeError (Array Card))
+-- readJsonFile file = do
+--   contents <- readTextFile UTF8 file
+--   let parsed = parseJson contents
+--   case parsed of 
+--     Left err -> pure err
+--     Right json ->
+--       -- pure (decodeJson json :: Either JsonDecodeError (Array Card))
+--       pure $ decodeJson json
