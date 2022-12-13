@@ -2,38 +2,29 @@ module Cards where
 
 import Prelude
 
-import Data.Argonaut (Json, JsonDecodeError, decodeJson, parseJson, printJsonDecodeError)
-import Data.Argonaut.Decode (class DecodeJson, JsonDecodeError, parseJson)
+import Data.Argonaut.Decode (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
-import Data.Array as Data.Array
-import Data.Array.NonEmpty (fromFoldable)
-import Data.Either (Either(..))
-import Data.Foldable (find)
+import Data.Array ((!!))
+import Data.Array as Array
+import Data.Foldable as Foldable
 import Data.Generic.Rep (class Generic)
-import Data.Int (Radix(..), decimal)
+import Data.Int (decimal)
 import Data.Int as Data.Int
-import Data.List (tail)
-import Data.Map (Map, lookup, values)
+import Data.Map (Map, lookup)
 import Data.Map as Data.Map
+import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (traverse)
 import Data.Show.Generic (genericShow)
 import Data.String (Pattern(..), contains, toLower)
-import Data.Traversable (for, sequence)
+import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
-import Effect (Effect)
-import Effect.Aff (Aff, error)
-import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Exception (error, throw, throwException)
+import Effect.Aff (Aff)
 import Node.Encoding (Encoding(..))
-import Node.FS.Aff (readTextFile)
 import Node.FS.Aff as FS
-import Parsing (runParser)
 import Parsing.CSV (Parsers, makeParsers)
-import Web.HTML.Event.EventTypes (offline)
+import Partial.Unsafe (unsafePartial)
 
 -- import Effect.Exception (error)
 data IconPosition
@@ -72,9 +63,11 @@ data CardColor
   | Blue
   | Yellow
   | Purple
-  | Unknown
+  -- | Unknown
 
--- fixed set of inputws from innovation.txt, so no parse errors are possible
+-- instance cardColorPartial :: Partial CardColor
+
+-- fixed set of inputs from innovation.txt, so no parse errors are possible
 cardColorParse :: String -> CardColor
 cardColorParse "Green" = Green
 
@@ -86,7 +79,8 @@ cardColorParse "Yellow" = Yellow
 
 cardColorParse "Purple" = Purple
 
-cardColorParse _ = Unknown
+-- cardColorParse c = unsafePartial $ "Unknown card color: " <> c
+cardColorParse _ = unsafePartial Green
 
 -- cardColorParse str = error ("Unknown card color: " <> str)
 allCardColors :: Array CardColor
@@ -97,6 +91,10 @@ allCardColors =
   , Yellow
   , Purple
   ]
+
+derive instance eqCardColor :: Eq CardColor
+
+derive instance ordCardColor :: Ord CardColor
 
 derive instance genericCardColor :: Generic CardColor _
 
@@ -111,12 +109,13 @@ instance decodeCardColor :: DecodeJson CardColor where
 
 -- derive instance eqCardColor :: Eq CardColor
 instance showCardColor :: Show CardColor where
-  show Green = "Green"
-  show Red = "Red"
-  show Blue = "Blue"
-  show Yellow = "Yellow"
-  show Purple = "Purple"
-  show Unknown = "Unknown"
+  show = genericShow
+  -- show Green = "Green"
+  -- show Red = "Red"
+  -- show Blue = "Blue"
+  -- show Yellow = "Yellow"
+  -- show Purple = "Purple"
+  -- show Unknown = "Unknown"
 
 newtype Card
   = Card
@@ -140,13 +139,7 @@ instance eqCard :: Eq Card where
   eq (Card a) (Card b) = (a.id == b.id)
 
 instance ordCard :: Ord Card where
-  compare (Card a) (Card b) =
-    if a.id < b.id then
-      LT
-    else if a.id > b.id then
-      GT
-    else
-      EQ
+  compare (Card a) (Card b) = compare a.id b.id
 
 derive instance genericCard :: Generic Card _
 
@@ -169,18 +162,16 @@ cardHasIcon (Card card) icon =
 -- cardHasIcon (Card c) str = case find (\v -> v == str) (values c.icons) of
 --   Just _ -> 1 == 1
 --   Nothing -> 1 == 0
-foreign import shuffleArray :: Array String -> Effect (Array String)
+foreign import shuffleArray :: Array Card -> (Array Card)
 
 cardBackground :: CardColor -> String
 cardBackground color = "images/" <> (toLower (show color)) <> ".jpg"
 
--- cardBackgrounds :: Map CardColor String
--- cardBackgrounds =
---   allCardColors
---     |> Array.map (fun color ->
---         let name = CardColor.ToString(color)
---         (color, $"imagers/{name.ToLowerInvariant()}.jpg"))
---     |> Map.ofArray
+cardBackgrounds :: Map CardColor String
+cardBackgrounds =
+  allCardColors
+    # Array.foldMap (\color -> Map.singleton color ("../imagers/" <> toLower (show color) <> ".jpg"))
+
 getInnovationTxt :: Aff String
 getInnovationTxt = do
   -- response <- AX.get AXR.String "https://raw.githubusercontent.com/jsparkes/innovation/master/Innovation.txt"
@@ -201,34 +192,30 @@ getString key map = lookup key map # fromMaybe ""
 getIconMap :: Map String String -> Map IconPosition String
 getIconMap map = do
   ( Data.Map.fromFoldable
-      [ IconTop
-          /\ (getString "Top" map)
-      , IconLeft
-          /\ (getString "Left" map)
-      , IconMiddle
-          /\ (getString "Middle" map)
-      , IconRight
-          /\ (getString "Right" map)
+      [ IconTop    /\ (getString "top" map)
+      , IconLeft   /\ (getString "left" map)
+      , IconMiddle /\ (getString "middle" map)
+      , IconRight  /\ (getString "right" map)
       ]
   )
 
 makeCard :: Map String String -> Card
 makeCard map =
   Card
-    { id: getInt "Id" map
-    , age: getInt "Age" map
-    , color: cardColorParse $ getString "Color" map
-    , title: getString "Title" map
+    { id: getInt "id" map
+    , age: getInt "age" map
+    , color: cardColorParse $ getString "color" map
+    , title: getString "title" map
     , icons: getIconMap map
-    , top : ""
-    , left: ""
-    , middle: ""
-    , right: ""
-    , hexagon: getString "Hexagon (info only)" map
-    , dogmaIcon: getString "Dogma Icon" map
-    , dogmaCondition1: getString "Dogma Condition 1" map
-    , dogmaCondition2: getString "Dogma Condition 2" map
-    , dogmaCondition3: getString "Dogma Condition 3" map
+    , top : getString "top" map
+    , left: getString "left" map
+    , middle: getString "middle" map
+    , right: getString "right" map
+    , hexagon: getString "hexagon" map
+    , dogmaIcon: getString "dogmaIcon" map
+    , dogmaCondition1: getString "dogmaCondition1" map
+    , dogmaCondition2: getString "dogmaCondition2" map
+    , dogmaCondition3: getString "dogmaCondition3" map
     }
 -- parseCards :: String -> Aff (Array Card)
 -- parseCards content = do
@@ -248,3 +235,86 @@ makeCard map =
 --     Right json ->
 --       -- pure (decodeJson json :: Either JsonDecodeError (Array Card))
 --       pure $ decodeJson json
+
+newtype Deck
+  = Deck (Array Card)
+
+tuck :: Deck -> Card -> Deck
+tuck (Deck d) (Card c) = Deck $ d <> Array.fromFoldable [Card c]
+
+stack :: Deck -> Card -> Deck
+stack (Deck d) (Card c) = Deck $ Card c Array.: d
+
+unstack :: Deck -> Tuple Deck (Maybe Card)
+unstack d@(Deck []) = Tuple d Nothing
+unstack (Deck d) =
+  let card = d !! 0
+  in
+  Tuple (Deck (Array.drop 1 d)) card
+
+remove :: Deck -> Card -> Deck
+remove (Deck d) (Card c) = Deck $ d # Array.filter (\(Card card) -> card.id == c.id)
+
+shuffle :: Deck -> Deck
+shuffle (Deck d) = Deck $ shuffleArray d
+
+-- Look at the top card without removing it
+topCard :: Deck -> Maybe Card
+topCard (Deck []) = Nothing
+topCard (Deck d) = Array.head d
+
+getCardByName :: Deck -> String -> Maybe Card
+getCardByName (Deck d) n = d # Array.find (\(Card c) -> c.title == n)
+
+getCardById :: Deck -> Int -> Maybe Card
+getCardById (Deck d) id = d # Array.find (\(Card c) -> c.id == id)
+
+getHighestCard :: Deck -> Maybe Card
+getHighestCard (Deck d) = Foldable.maximum d
+
+isHighestCard :: Deck -> Card -> Boolean
+isHighestCard (Deck d) (Card c) =
+  case getHighestCard (Deck d) of
+    Nothing -> true
+    Just (Card h) -> h.age == c.age
+
+getHighestAgeCard :: Deck -> Maybe Card
+getHighestAgeCard (Deck d) = Foldable.maximumBy (\(Card c1) (Card c2) -> compare c1.age c2.age) d
+
+removeHighestAgeCard :: Deck -> Deck
+removeHighestAgeCard (Deck d) =
+  case getHighestAgeCard (Deck d) of
+    Nothing -> Deck d
+    Just (Card c) -> remove (Deck d) (Card c)
+
+getLowestCard :: Deck -> Maybe Card
+getLowestCard (Deck d) = Foldable.minimum d
+
+isLowestCard :: Deck -> Card -> Boolean
+isLowestCard (Deck d) (Card c) =
+  case getLowestCard (Deck d) of
+    Nothing -> true
+    Just (Card l) -> l.age == c.age
+
+getLowestAgeCard :: Deck -> Maybe Card
+getLowestAgeCard (Deck d) = Foldable.minimumBy (\(Card c1) (Card c2) -> compare c1.age c2.age) d
+
+removeLowestAgeCard :: Deck -> Deck
+removeLowestAgeCard (Deck d) =
+  case getLowestAgeCard (Deck d) of
+    Nothing -> Deck d
+    Just (Card c) -> remove (Deck d) (Card c)
+
+getCardsByAge :: Deck -> Int -> Array Card
+getCardsByAge (Deck d) age = Array.filter (\(Card c) -> c.age == age) d
+
+-- Sometimes a specific age is removed from a score deck
+removeCardByAge :: Deck -> Int -> Deck
+removeCardByAge d age =
+  case getCardsByAge d age # Array.head of
+    Nothing -> d
+    Just c -> remove d c
+
+totalScore :: Deck -> Int
+totalScore (Deck d) = Array.foldl (\acc (Card c) -> acc + c.age) 0 d
+
