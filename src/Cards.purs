@@ -239,6 +239,21 @@ makeCard map =
 newtype Deck
   = Deck (Array Card)
 
+derive instance genericDeck :: Generic Deck _
+
+derive instance eqDeck :: Eq Deck
+
+derive instance ordDeck :: Ord Deck
+
+instance showDeck :: Show Deck where
+  show = genericShow
+
+instance encodeDeck :: EncodeJson Deck where
+  encodeJson = genericEncodeJson
+
+instance decodeDeck :: DecodeJson Deck where
+  decodeJson = genericDecodeJson
+
 tuck :: Deck -> Card -> Deck
 tuck (Deck d) (Card c) = Deck $ d <> Array.fromFoldable [Card c]
 
