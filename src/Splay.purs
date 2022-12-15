@@ -15,11 +15,12 @@ data SplayDirection
   | Up
 
 splayScore :: SplayDirection -> Int
-splayScore dir = case dir of 
-                  Unsplayed -> 0
-                  Left -> 10
-                  Right -> 25
-                  Up -> 40
+splayScore dir =
+  case dir of
+    Unsplayed -> 0
+    Left -> 10
+    Right -> 25
+    Up -> 40
 
 derive instance eqSplayDirection :: Eq SplayDirection
 
