@@ -48,7 +48,6 @@ instance EncodeJson IconPosition where
 instance DecodeJson IconPosition where
   decodeJson = genericDecodeJson
 
-
 allIconPositions :: Array IconPosition
 allIconPositions =
   [ IconTop
@@ -63,7 +62,8 @@ data CardColor
   | Blue
   | Yellow
   | Purple
-  -- | Unknown
+
+-- | Unknown
 
 -- instance cardColorPartial :: Partial CardColor
 
@@ -110,15 +110,15 @@ instance decodeCardColor :: DecodeJson CardColor where
 -- derive instance eqCardColor :: Eq CardColor
 instance showCardColor :: Show CardColor where
   show = genericShow
-  -- show Green = "Green"
-  -- show Red = "Red"
-  -- show Blue = "Blue"
-  -- show Yellow = "Yellow"
-  -- show Purple = "Purple"
-  -- show Unknown = "Unknown"
 
-newtype Card
-  = Card
+-- show Green = "Green"
+-- show Red = "Red"
+-- show Blue = "Blue"
+-- show Yellow = "Yellow"
+-- show Purple = "Purple"
+-- show Unknown = "Unknown"
+
+newtype Card = Card
   { id :: Int
   , age :: Int
   , color :: CardColor
@@ -192,10 +192,10 @@ getString key map = lookup key map # fromMaybe ""
 getIconMap :: Map String String -> Map IconPosition String
 getIconMap map = do
   ( Data.Map.fromFoldable
-      [ IconTop    /\ (getString "top" map)
-      , IconLeft   /\ (getString "left" map)
+      [ IconTop /\ (getString "top" map)
+      , IconLeft /\ (getString "left" map)
       , IconMiddle /\ (getString "middle" map)
-      , IconRight  /\ (getString "right" map)
+      , IconRight /\ (getString "right" map)
       ]
   )
 
@@ -207,7 +207,7 @@ makeCard map =
     , color: cardColorParse $ getString "color" map
     , title: getString "title" map
     , icons: getIconMap map
-    , top : getString "top" map
+    , top: getString "top" map
     , left: getString "left" map
     , middle: getString "middle" map
     , right: getString "right" map
@@ -217,6 +217,7 @@ makeCard map =
     , dogmaCondition2: getString "dogmaCondition2" map
     , dogmaCondition3: getString "dogmaCondition3" map
     }
+
 -- parseCards :: String -> Aff (Array Card)
 -- parseCards content = do
 --   let rows = 
@@ -225,7 +226,7 @@ makeCard map =
 --                 Right val -> val
 --   -- rows <- parsers.fileHeaded content
 --   for rows makeCard # Data.Array.fromFoldable
- 
+
 -- readJsonFile :: String -> Aff (Either JsonDecodeError (Array Card))
 -- readJsonFile file = do
 --   contents <- readTextFile UTF8 file
@@ -236,8 +237,7 @@ makeCard map =
 --       -- pure (decodeJson json :: Either JsonDecodeError (Array Card))
 --       pure $ decodeJson json
 
-newtype Deck
-  = Deck (Array Card)
+newtype Deck = Deck (Array Card)
 
 derive instance genericDeck :: Generic Deck _
 
@@ -255,7 +255,7 @@ instance decodeDeck :: DecodeJson Deck where
   decodeJson = genericDecodeJson
 
 tuck :: Deck -> Card -> Deck
-tuck (Deck d) (Card c) = Deck $ d <> Array.fromFoldable [Card c]
+tuck (Deck d) (Card c) = Deck $ d <> Array.fromFoldable [ Card c ]
 
 stack :: Deck -> Card -> Deck
 stack (Deck d) (Card c) = Deck $ Card c Array.: d
@@ -263,9 +263,10 @@ stack (Deck d) (Card c) = Deck $ Card c Array.: d
 unstack :: Deck -> Tuple Deck (Maybe Card)
 unstack d@(Deck []) = Tuple d Nothing
 unstack (Deck d) =
-  let card = d !! 0
+  let
+    card = d !! 0
   in
-  Tuple (Deck (Array.drop 1 d)) card
+    Tuple (Deck (Array.drop 1 d)) card
 
 remove :: Deck -> Card -> Deck
 remove (Deck d) (Card c) = Deck $ d # Array.filter (\(Card card) -> card.id == c.id)
