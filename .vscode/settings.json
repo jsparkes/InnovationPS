@@ -1,4 +1,4 @@
 {
     "purescript.buildCommand": "npx spago build --purs-args --json-errors",
-    "purescript.pursExe": "node_modules/purescript/purs.bin"
+    "purescript.addNpmPath": false
 }
