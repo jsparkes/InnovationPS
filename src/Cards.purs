@@ -6,7 +6,7 @@ import Data.Argonaut.Decode (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
-import Data.Array ((!!), head, tail)
+import Data.Array ((!!))
 import Data.Array as Array
 import Data.Foldable as Foldable
 import Data.Generic.Rep (class Generic)
@@ -280,8 +280,14 @@ topCard (Deck []) = Nothing
 topCard (Deck d) = Array.head d
 
 getTopCard :: Deck -> (Tuple (Maybe Card) Deck)
-getTopCard (Deck []) -> Tuple Nothing (Deck [])
-getTopCard (Deck d) = Tuple (Array.head d) (Array.tail d)
+getTopCard (Deck []) = Tuple Nothing (Deck [])
+getTopCard (Deck d) = Tuple (Array.head d)
+  ( Deck
+      ( case Array.tail d of
+          Nothing -> []
+          Just x -> x
+      )
+  )
 
 getCardByName :: Deck -> String -> Maybe Card
 getCardByName (Deck d) n = d # Array.find (\(Card c) -> c.title == n)
