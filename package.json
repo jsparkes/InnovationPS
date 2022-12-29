@@ -1,0 +1,19 @@
+{
+  "name": "innovation-ps",
+  "version": "0.0.1",
+  "description": "Innovation card game in Purescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "typings install"
+  },
+  "author": "jsparkes@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "purescript": "^0.15.7",
+    "spago": "^0.20.9",
+    "node": "0.0.0"
+  },
+  "dependencies": {
+  }
+}
