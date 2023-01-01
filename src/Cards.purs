@@ -1,4 +1,15 @@
-module Cards where
+module Cards
+  ( Card(..)
+  , CardColor(..)
+  , Deck(..)
+  , IconPosition(..)
+  , getInnovationTxt
+  , parseCards
+  , stack
+  , tuck
+  , unstack
+  )
+  where
 
 import Prelude
 
@@ -8,23 +19,27 @@ import Data.Argonaut.Encode (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.Array ((!!))
 import Data.Array as Array
+import Data.Either (Either(..))
 import Data.Foldable as Foldable
 import Data.Generic.Rep (class Generic)
 import Data.Int (decimal)
 import Data.Int as Data.Int
 import Data.Map (Map, lookup)
-import Data.Map as Data.Map
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Show.Generic (genericShow)
 import Data.String (Pattern(..), contains, toLower)
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested ((/\))
+import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Exception (throw)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff as FS
+import Parsing (runParser)
 import Parsing.CSV (Parsers, makeParsers)
 import Partial.Unsafe (unsafePartial)
+import Prelude as List
 
 -- import Effect.Exception (error)
 data IconPosition
@@ -191,7 +206,7 @@ getString key map = lookup key map # fromMaybe ""
 
 getIconMap :: Map String String -> Map IconPosition String
 getIconMap map = do
-  ( Data.Map.fromFoldable
+  ( Map.fromFoldable
       [ IconTop /\ (getString "top" map)
       , IconLeft /\ (getString "left" map)
       , IconMiddle /\ (getString "middle" map)
@@ -218,14 +233,11 @@ makeCard map =
     , dogmaCondition3: getString "dogmaCondition3" map
     }
 
--- parseCards :: String -> Aff (Array Card)
--- parseCards content = do
---   let rows = 
---             case runParser parsers.fileHeaded content (Array String) offline
---                 Left err -> pure $ throw "failing to parse card data"
---                 Right val -> val
---   -- rows <- parsers.fileHeaded content
---   for rows makeCard # Data.Array.fromFoldable
+parseCards :: String -> Effect (Array Card)
+parseCards content =
+  case runParser content parsers.fileHeaded of
+    Left err -> throw "failing to parse card data"
+    Right val -> pure $ List.map makeCard val # Array.fromFoldable
 
 -- readJsonFile :: String -> Aff (Either JsonDecodeError (Array Card))
 -- readJsonFile file = do
@@ -234,7 +246,7 @@ makeCard map =
 --   case parsed of 
 --     Left err -> pure err
 --     Right json ->
---       -- pure (decodeJson json :: Either JsonDecodeError (Array Card))
+--       pure (decodeJson json :: Either JsonDecodeError (Array Card))
 --       pure $ decodeJson json
 
 newtype Deck = Deck (Array Card)
