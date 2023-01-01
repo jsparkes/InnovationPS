@@ -2,19 +2,17 @@ module Player where
 
 import Prelude
 
-import Cards (Card(..), Deck)
+import Cards (Deck)
 import Data.Argonaut (class DecodeJson, class EncodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.Array as Array
 import Data.Generic.Rep (class Generic)
-import Data.List (List(..), (:))
+import Data.List (List, (:))
 import Data.List as List
-import Data.Map (Map(..))
+import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.Profunctor.Strong (first)
-import Data.Semigroup.First (First(..))
 import Data.Show.Generic (genericShow)
 import Tableau (Tableau)
 
@@ -49,10 +47,11 @@ newtype Achievement =
     { index :: Int
     , title :: String
     , age :: Maybe Int
-    , by :: Maybe Player
     -- Card used as a marker, it is removed from play.
-    , card :: Maybe Card
     }
+
+instance Semigroup Achievement where
+  append left _ = left
 
 derive instance genericAchievement :: Generic Achievement _
 
@@ -75,64 +74,46 @@ regularAchievements =
         { index: 1
         , title: "Prehistory (1)"
         , age: Just 1
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 2
         , title: "Classical (2)"
         , age: Just 2
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 3
         , title: "Medieval (3)"
         , age: Just 3
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 4
         , title: "Renaissance (4)"
         , age: Just 4
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 5
         , age: Just 5
         , title: "Exploration (5)"
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 6
         , title: "Enlightenment (6)"
         , age: Just 6
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 7
         , title: "Romance (7)"
         , age: Just 7
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 8
         , title: "Modern (8)"
         , age: Just 8
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 9
         , title: "Postmodern (9)"
         , age: Just 9
-        , by: Nothing
-        , card: Nothing
         }
     ]
 
