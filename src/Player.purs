@@ -124,48 +124,38 @@ specialAchievements =
         { index: 11
         , title: "Monument"
         , age: Nothing
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 12
         , title: "Empire"
         , age: Nothing
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 13
         , title: "World"
         , age: Nothing
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 14
         , title: "Universe"
         , age: Nothing
-        , by: Nothing
-        , card: Nothing
         }
     , Achievement
         { index: 15
         , title: "Wonder"
         , age: Nothing
-        , by: Nothing
-        , card: Nothing
         }
     ]
 
-allAchievements :: Map Int (First Achievement)
+allAchievements :: Map Int Achievement
 allAchievements =
   ( Map.union
       ( Array.foldMap
-          (\a@(Achievement ac) -> Map.singleton ac.index (First a))
+          (\a@(Achievement ac) -> Map.singleton ac.index a)
           regularAchievements
       )
       ( Array.foldMap
-          (\a@(Achievement ac) -> Map.singleton ac.index (First a))
+          (\a@(Achievement ac) -> Map.singleton ac.index a)
           specialAchievements
       )
   )
