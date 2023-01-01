@@ -12,22 +12,31 @@ to generate this file without the comments in this block.
 -}
 { name = "InnovationPS"
 , dependencies =
-  [ "affjax"
+  [ "aff"
   , "argonaut"
+  , "argonaut-codecs"
   , "argonaut-generic"
+  , "arrays"
   , "console"
   , "csv"
   , "effect"
   , "either"
+  , "exceptions"
   , "foldable-traversable"
+  , "functors"
+  , "integers"
+  , "lists"
   , "maybe"
-  , "node-fs"
+  , "node-buffer"
   , "node-fs-aff"
   , "ordered-collections"
+  , "parsing"
+  , "partial"
   , "prelude"
   , "spec"
   , "spec-discovery"
   , "strings"
+  , "tuples"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
