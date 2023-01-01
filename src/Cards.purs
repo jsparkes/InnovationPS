@@ -3,6 +3,7 @@ module Cards
   , CardColor(..)
   , Deck(..)
   , IconPosition(..)
+  , cardColorParse
   , getInnovationTxt
   , parseCards
   , stack
@@ -193,7 +194,7 @@ getInnovationTxt = do
   -- case response of
   --   Left err -> throwException (error "Unable to retrieve card description URL: " <> (show err))
   --   Right contents -> contents
-  FS.readTextFile UTF8 "../innovation.txt"
+  FS.readTextFile UTF8 "innovation.txt"
 
 parsers :: Parsers String
 parsers = makeParsers '\"' "\t" "\n"
