@@ -1,7 +1,6 @@
-// 'use strict';
-'use esversion: 6';
+'use strict';
 
-export function shuffleArray (array) {
+export function shuffleArray(array) {
   return function () {
     return array
       .map((value) => ({ value, sort: Math.random() }))
@@ -9,5 +8,3 @@ export function shuffleArray (array) {
       .map(({ value }) => value);
   };
 }
-
-// export { shuffleArray };
