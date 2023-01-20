@@ -4,8 +4,11 @@ module Cards
   , Deck(..)
   , IconPosition(..)
   , cardColorParse
+  , getHighestCard
   , getInnovationTxt
+  , isHighestCard
   , parseCards
+  , remove
   , stack
   , tuck
   , unstack
