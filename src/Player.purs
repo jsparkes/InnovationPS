@@ -2,7 +2,8 @@ module Player where
 
 import Prelude
 
-import Cards (Deck)
+import Cards (Card, Deck)
+import Cards as Cards
 import Data.Argonaut (class DecodeJson, class EncodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
@@ -23,6 +24,7 @@ newtype Player = Player
   , achievements :: List Achievement
   , hand :: Deck
   , tuckCount :: Int
+  , scoreDeck :: Deck
   }
 
 derive instance genericPlayer :: Generic Player _
@@ -190,3 +192,13 @@ hasAchievementByTitle (Player p) title =
 hasAchievement :: Player -> Int -> Boolean
 hasAchievement (Player p) index =
   p.achievements # List.find (\(Achievement a) -> a.index == index) # isJust
+
+removeCardFromHand :: Player -> Card -> Player
+removeCardFromHand (Player player) card = do
+  let hand = Cards.remove player.hand card
+  Player (player { hand = hand })
+
+scoreCard :: Player -> Card -> Player
+scoreCard (Player player) c = do
+  let scoreDeck = Cards.stack (player.scoreDeck) c
+  Player (player { scoreDeck = scoreDeck })
