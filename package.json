@@ -4,8 +4,9 @@
   "description": "Innovation card game in Purescript",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "typings install"
+    "test": "npx spago test",
+    "postinstall": "npx spago install",
+    "build": "npx spago build --purs-args --json-errors"
   },
   "author": "jsparkes@gmail.com",
   "license": "ISC",
