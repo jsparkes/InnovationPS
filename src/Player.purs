@@ -202,3 +202,6 @@ scoreCard :: Player -> Card -> Player
 scoreCard (Player player) c = do
   let scoreDeck = Cards.stack (player.scoreDeck) c
   Player (player { scoreDeck = scoreDeck })
+
+getHighestCard :: Player -> Maybe Card
+getHighestCard (Player player) = Cards.getHighestCard player.hand
