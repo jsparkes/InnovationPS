@@ -1,4 +1,5 @@
 {
     "purescript.buildCommand": "npx spago build --purs-args --json-errors",
-    "purescript.addNpmPath": true
+    "purescript.addNpmPath": true,
+    "js/ts.implicitProjectConfig.target": "ES6"
 }
