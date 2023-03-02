@@ -15,6 +15,7 @@ import Player as Player
 
 newtype Board = Board
   { players :: NonEmptyArray Player
+  , dogmaCopied :: Boolean
   }
 
 derive instance genericPlayer :: Generic Board _
@@ -38,5 +39,9 @@ updatePlayer (Board board) player pos = do
   case p of 
     Nothing -> Board board
     Just players -> Board (board { players = players})
+
+-- One of the AI players has used the player's dogma
+copyDogma :: Board -> Board
+copyDogma (Board board) = Board (board { dogmaCopied = true })
 
 
